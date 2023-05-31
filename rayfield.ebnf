@@ -1,0 +1,69 @@
+?start: entry
+
+entry: headword case_form? definition
+
+case_form: "(" GEOWORD ")"
+
+definition: forms? global_info senses
+			| forms? global_info homonyms
+
+headword: GEOWORD_VAR
+forms: "(" GEOWORD_VAR "," GEOWORD_VAR ("/" GEOWORD_VAR)? ")"
+			| "(" GEOWORD_VAR "(" tag GEOWORD_VAR ")" "," GEOWORD_VAR ("/" GEOWORD_VAR)? ")"
+			| "(" GEOWORD_VAR "," GEOWORD_VAR "<i>or</i>" GEOWORD_VAR ")"
+global_info: tag* from_forms? tag*
+from_forms: "(" "&lt;" GEOWORD ("," GEOWORD)* ")"
+
+homonyms: homonym (";" homonym)+
+
+homonym: NUMBER tag* forms? tag* from_forms? senses
+
+senses: sense (";" tag? sense)*
+
+sense: trans_eq? usage_exs? crossref?
+
+// make sure tilde is there
+// also, latin_text is not grouped together for some reason, look up "ამოკვრა"
+usage_exs: ":" usage_ex (";" usage_ex)*
+
+usage_ex: georgian_text (latin_text|context|tag)+
+
+trans_eq: (latin_text|context)+
+
+crossref: "<i>" cf_scope "</i>" GEOWORD_VAR+
+
+cf_scope: CF_LOCAL | CF_GLOBAL
+
+context: "(" "<i>" latin_text "</i>" ("," "<i>" latin_text "</i>")* ")"
+
+latin_text: (LATWORD|PUNCT)+
+georgian_text: (GEOWORD|PUNCT)+
+
+// ==========================================
+// Basic definitions
+// ==========================================
+
+tag: "<i>" latin_ext "</i>"
+
+?latin_ext: (LATWORD_EXT|PUNCT)+
+?latin: LATWORD+
+georgian: GEOWORD+
+
+// -------- Defining primitives --------
+
+CF_LOCAL: "see"
+CF_GLOBAL: "See"
+
+PUNCT: /[,\.\?~‘’!-]+/
+GEOWORD: /[ა-ჰ–—-]+/
+GEOWORD_VAR: /[ა-ჰ–—-]+[ა-ჰ()\[\]]+[ა-ჰ~–—-]+/
+LATWORD: /[A-Za-zﬂ0-9\/()-]*[A-Za-zﬂ\/()-][A-Za-zﬂ0-9\/()-]*/
+LATWORD_EXT: /[A-Za-zﬂ†‡©◊0-9\/]*[A-Za-zﬂ†‡©◊\/][A-Za-zﬂ†‡©◊0-9\/]*/
+
+// -------- Importing basic data types and ignoring whitespaces --------
+%import common.CNAME
+%import common.WS
+%ignore WS
+
+
+%import common.NUMBER
